@@ -193,6 +193,10 @@ Router.get('/promo/detail', PromotionDetails.detail_promotion)
 
 Router.post('/games/launch', BlackboxPlatformGameController.launchGame);
 
+Router.post('/games/list', BlackboxPlatformGameController.listGames);
+
+Router.post('/games/providers', BlackboxPlatformGameController.listProviders);
+
 Router.post('/drakon_api', BlackboxPlatformGameController.webhook);
 
 Router.get('/member/record/trade', memberRecordTradeController.member_record_trade)
