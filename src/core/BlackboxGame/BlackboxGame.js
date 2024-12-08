@@ -36,44 +36,35 @@ const BlackBoxCore = {
     // Método para listar provedores
     async getAllProviders() {
         try {
-            const accessToken = await this.authenticate(); // Chama o método de autenticação
-            const response = await axios.get('https://gator.drakon.casino/api/v1/games/provider', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            });
-
-            if (response.status === 200 && response.data.status) {
-                return response.data.providers;
-            } else {
-                throw new Error('Erro ao buscar provedores');
-            }
+            const distributions = await knex('list_games')
+                .distinct('distribution')
+                .select('distribution');
+    
+            return distributions;
         } catch (error) {
-            console.error('Erro ao buscar provedores:', error.message);
+            console.error('Erro ao buscar distribuições:', error.message);
             throw error;
         }
     },
+    
 
-    // Método para listar jogos
-    async getAllGames() {
+    async getAllGames(distribution) {
         try {
-            const accessToken = await this.authenticate(); // Chama o método de autenticação
-            const response = await axios.get('https://gator.drakon.casino/api/v1/games/all', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            });
-
-            if (response.status === 200 && response.data.status) {
-                return response.data.games;
-            } else {
-                throw new Error('Erro ao buscar jogos');
+            if (!distribution) {
+                throw new Error("O parâmetro 'distribution' é obrigatório.");
             }
+    
+            const games = await knex('list_games')
+                .select('*')
+                .where('distribution', distribution);
+    
+            return games;
         } catch (error) {
             console.error('Erro ao buscar jogos:', error.message);
             throw error;
         }
     },
+    
 
     async launchGame(token, body, res) {
         try {

@@ -13,7 +13,14 @@ const BlackboxPlatformGameController = {
 
     async listGames(req, res) {
         try {
-            const games = await BlackBoxCore.getAllGames();
+            const { distribution } = req.query;
+    
+            if (!distribution) {
+                return res.status(400).json({ status: false, message: "O parâmetro 'distribution' é obrigatório." });
+            }
+    
+            const games = await BlackBoxCore.getAllGames(distribution);
+    
             return res.json({ status: true, data: games });
         } catch (error) {
             console.error('Erro ao listar jogos:', error.message);
