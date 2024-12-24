@@ -43,6 +43,7 @@ const MemberPasswordCheckController = require('../controllers/MemberPasswordChec
 const MemberSlotHotGameController = require('../controllers/MemberSlotHotGameController/MemberSlotHotGameController')
 const MemberSlotListController = require('../controllers/MemberSlotListController/MemberSlotListController')
 const MemberHistoryDetailController = require('../controllers/MemberHistoryDetailController/MemberHistoryDetailController')
+const MemberFavouriteController = require('../controllers/MemberFavouriteGameController/MemberFavouriteGameController')
 
 const UserBalance = require('../API/Jiut/Method/UserBalance/UserBalance')
 const Transaction = require('../API/Jiut/Method/Transactions/Transactions')
@@ -210,6 +211,10 @@ Router.post('/promo/invite/list', PromotionInviteController.promotion_invite)
 Router.post('/member/slot/search', MemberSlotsSearch.slots_search)
 
 Router.post('/member/login', LoginController.login)
+
+Router.post('/member/favourite', MemberFavouriteController.member_favourite)
+
+Router.get('/member/favourite/list', MemberFavouriteController.list_member_favorites)
 
 Router.post('/member/recall/balance', MemeberRecallBalanceController.member_recall_balance)
 

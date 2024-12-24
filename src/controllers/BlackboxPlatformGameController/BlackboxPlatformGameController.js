@@ -13,20 +13,65 @@ const BlackboxPlatformGameController = {
 
     async listGames(req, res) {
         try {
-            const { distribution } = req.query;
+            // Extrai os parâmetros da query string
+            const { 
+                offset = 0, 
+                limit = 6, 
+                is_hot = null, 
+                is_new = null, 
+                is_live = null, 
+                rewards_flag = null, 
+                search = null 
+            } = req.query;
     
-            if (!distribution) {
-                return res.status(400).json({ status: false, message: "O parâmetro 'distribution' é obrigatório." });
+            // Converte os parâmetros para inteiros, se necessário
+            const offsetInt = parseInt(offset, 10);
+            const limitInt = parseInt(limit, 10);
+            const isHotInt = is_hot !== null ? parseInt(is_hot, 10) : null;
+            const isNewInt = is_new !== null ? parseInt(is_new, 10) : null;
+            const isLiveInt = is_live !== null ? parseInt(is_live, 10) : null;
+            const rewardsFlagInt = rewards_flag !== null ? parseInt(rewards_flag, 10) : null;
+    
+            // Chama a função getAllGames
+            const groupedGames = await BlackBoxCore.getAllGames(
+                offsetInt, 
+                limitInt, 
+                isHotInt, 
+                isNewInt, 
+                isLiveInt, 
+                rewardsFlagInt,
+                search
+            );
+    
+            if (!groupedGames || Object.keys(groupedGames).length === 0) {
+                return res.status(404).json({ status: false, message: 'Nenhum jogo encontrado.' });
             }
     
-            const games = await BlackBoxCore.getAllGames(distribution);
+            // Prepara a resposta no formato esperado
+            const result = Object.entries(groupedGames).map(([providerName, data]) => ({
+                providerName,
+                games: data.games,
+                totalGames: data.totalGames,
+            }));
     
-            return res.json({ status: true, data: games });
+            return res.json({
+                status: true,
+                result, // Lista de provedores com seus jogos e totalGames
+                pagination: {
+                    offset: offsetInt,
+                    limit: limitInt,
+                }
+            });
         } catch (error) {
             console.error('Erro ao listar jogos:', error.message);
             return res.status(500).json({ status: false, message: 'Erro ao listar jogos' });
         }
     },
+    
+    
+    
+      
+    
 
     async launchGame(req, res) {
         try {

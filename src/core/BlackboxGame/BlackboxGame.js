@@ -48,22 +48,68 @@ const BlackBoxCore = {
     },
     
 
-    async getAllGames(distribution) {
+    async getAllGames(offset = 0, limit = 200, is_hot = null, is_new = null, is_live = null, rewards_flag = null, search = null) {
         try {
-            if (!distribution) {
-                throw new Error("O parâmetro 'distribution' é obrigatório.");
-            }
+            const gamesQuery = knex.raw(`
+                WITH TotalGames AS (
+                    SELECT 
+                        distribution,
+                        COUNT(*) AS totalGames
+                    FROM list_games
+                    WHERE 1
+                        ${is_hot !== null ? `AND is_hot = ${is_hot}` : ""}
+                        ${is_new !== null ? `AND is_new = ${is_new}` : ""}
+                        ${is_live !== null ? `AND is_live = ${is_live}` : ""}
+                        ${rewards_flag !== null ? `AND rewards_flag = ${rewards_flag}` : ""}
+                        ${search ? `AND (name LIKE '%${search}%' OR distribution LIKE '%${search}%')` : ""}
+                    GROUP BY distribution
+                )
+                SELECT 
+                    lg.*,
+                    tg.totalGames
+                FROM list_games AS lg
+                LEFT JOIN TotalGames AS tg ON lg.distribution = tg.distribution
+                WHERE 1
+                    ${is_hot !== null ? `AND lg.is_hot = ${is_hot}` : ""}
+                    ${is_new !== null ? `AND lg.is_new = ${is_new}` : ""}
+                    ${is_live !== null ? `AND lg.is_live = ${is_live}` : ""}
+                    ${rewards_flag !== null ? `AND lg.rewards_flag = ${rewards_flag}` : ""}
+                    ${search ? `AND (lg.name LIKE '%${search}%' OR lg.distribution LIKE '%${search}%')` : ""}
+                ORDER BY lg.distribution, lg.id
+                LIMIT ${limit} OFFSET ${offset};
+            `);
     
-            const games = await knex('list_games')
-                .select('*')
-                .where('distribution', distribution);
+            const games = await gamesQuery;
     
-            return games;
+            const groupedGames = games[0].reduce((acc, game) => {
+                const providerName = game.distribution;
+                if (!acc[providerName]) {
+                    acc[providerName] = {
+                        games: [],
+                        totalGames: game.totalGames || 0,
+                    };
+                }
+                acc[providerName].games.push(game);
+                return acc;
+            }, {});
+    
+            return groupedGames;
         } catch (error) {
-            console.error('Erro ao buscar jogos:', error.message);
+            console.error("Erro ao buscar jogos por distribuição:", error.message);
             throw error;
         }
-    },
+    }
+    
+    
+    ,
+    
+    
+    
+    
+    
+    
+      
+    
     
 
     async launchGame(token, body, res) {
